@@ -24,3 +24,6 @@ The first actual WebGL2 rendering pass of the playable AXEBOUND combat prototype
 This is *not* a fully rigged GLB character-animation pipeline. The pose animation is procedural; characters are still geometric, though now genuinely 3D. Lighting is baked through per-face directional shading rather than real-time shadow mapping. There are no authored PBR texture maps or original soundtrack yet. The complete run duration remains inherited from build 0.2 (~4 minutes until the final wave, not yet the target 7–9-minute vertical slice). The game may need optimization depending on your iPhone model. An interactive Safari playthrough has not been verified in this development environment.
 
 The next production step should be importing art-directed low-poly GLB characters, skeletal clips and terrain materials while retaining the proven combat state machine.
+
+## 0.3.1 visibility hotfix
+Separate terrain and character depth passes in the WebGL2 renderer so terrain cannot occlude the player and enemies; adjusted depth ordering. Replace both index.html and renderer3d.js when updating the site.

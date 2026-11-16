@@ -12,7 +12,7 @@ class MeadowRenderer {
  void main(){float dx=aPosition.x-uCamera.x;float dz=aPosition.z-uCamera.y;
  float sx=uResolution.x*.5+(dx-dz)*uScale*.89;
  float sy=uResolution.y*.51+(dx+dz)*uScale*.425-aPosition.y*uScale*1.13;
- gl_Position=vec4(sx/uResolution.x*2.-1.,1.-sy/uResolution.y*2.,clamp((dx+dz-aPosition.y*.45)/85.,-.95,.95),1.);
+ gl_Position=vec4(sx/uResolution.x*2.-1.,1.-sy/uResolution.y*2.,clamp((dx+dz-aPosition.y*4.0)/85.,-.95,.95),1.);
  vColor=aColor;vShade=aShade;vFog=clamp(length(vec2(dx,dz))/31.,0.,1.);vWorld=aPosition.xz;
  }`;
  const frag=`#version 300 es
@@ -92,8 +92,13 @@ class MeadowRenderer {
  const blade=[top[0],top[1]+.035*scale,top[2]];this.box(...blade,.48*scale,.32*scale,.16*scale,this.mat('#b6c8c5'),face);this.box(blade[0],blade[1],blade[2],.31*scale,.055*scale,.18*scale,glow,face)}
  render(scene){const {w,h,dpr,scale,camera,decor,player,entities,types,clock}=scene;const gl=this.gl;let ww=Math.floor(w*dpr),hh=Math.floor(h*dpr);if(this.canvas.width!==ww||this.canvas.height!==hh){this.canvas.width=ww;this.canvas.height=hh;this.canvas.style.width=w+'px';this.canvas.style.height=h+'px'}gl.viewport(0,0,ww,hh);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!this.staticReady)this.buildStatic(decor);this.data=[];
  for(const e of entities)this.actor(e,false,types[e.type]);this.actor(player,true,{scale:1});const a=player.axe;if(a.state!=='held'){this.weapon([a.x,1.05,a.z],.75,a.spin,Math.sin(clock*12)*.15,this.mat('#8deff3'));for(const tr of a.trail)this.cylinder(tr.x,.05,tr.z,.12,.04,.12,this.mat('#83cecf'),5)}
- const dynamic=new Float32Array(this.data);gl.useProgram(this.program);gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.bufferData(gl.ARRAY_BUFFER,this.staticData.byteLength+dynamic.byteLength,gl.DYNAMIC_DRAW);gl.bufferSubData(gl.ARRAY_BUFFER,0,this.staticData);gl.bufferSubData(gl.ARRAY_BUFFER,this.staticData.byteLength,dynamic);
- const stride=7*4;gl.enableVertexAttribArray(this.loc.pos);gl.vertexAttribPointer(this.loc.pos,3,gl.FLOAT,false,stride,0);gl.enableVertexAttribArray(this.loc.color);gl.vertexAttribPointer(this.loc.color,3,gl.FLOAT,false,stride,12);gl.enableVertexAttribArray(this.loc.shade);gl.vertexAttribPointer(this.loc.shade,1,gl.FLOAT,false,stride,24);gl.uniform2f(this.loc.res,w,h);gl.uniform2f(this.loc.cam,camera.x,camera.z);gl.uniform1f(this.loc.scale,scale);gl.uniform1f(this.loc.time,clock);gl.uniform1f(this.loc.pixel,1.3*dpr);gl.drawArrays(gl.TRIANGLES,0,(this.staticData.length+dynamic.length)/7);
+ const dynamic=new Float32Array(this.data);gl.useProgram(this.program);gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.bufferData(gl.ARRAY_BUFFER,this.staticData,gl.DYNAMIC_DRAW);
+ const stride=7*4;gl.enableVertexAttribArray(this.loc.pos);gl.vertexAttribPointer(this.loc.pos,3,gl.FLOAT,false,stride,0);gl.enableVertexAttribArray(this.loc.color);gl.vertexAttribPointer(this.loc.color,3,gl.FLOAT,false,stride,12);gl.enableVertexAttribArray(this.loc.shade);gl.vertexAttribPointer(this.loc.shade,1,gl.FLOAT,false,stride,24);gl.uniform2f(this.loc.res,w,h);gl.uniform2f(this.loc.cam,camera.x,camera.z);gl.uniform1f(this.loc.scale,scale);gl.uniform1f(this.loc.time,clock);gl.uniform1f(this.loc.pixel,1.3*dpr);gl.drawArrays(gl.TRIANGLES,0,this.staticData.length/7);
+ // Characters must be composited over the ground plane. The old shared depth
+ // buffer let terrain fragments hide actors entirely on mobile Safari.
+ gl.clear(gl.DEPTH_BUFFER_BIT);
+ gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);
+ gl.drawArrays(gl.TRIANGLES,0,dynamic.length/7);
  }
 }
 window.MeadowRenderer=MeadowRenderer;
