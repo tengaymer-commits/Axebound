@@ -1,12 +1,19 @@
-AXEBOUND 0.4 — Visual & Combat Readability Pass
+# AXEBOUND 0.9 — Combat Director & Game Feel
 
-Changes relative to v0.3.2a:
-1. More distinctive hero/enemy shading, silhouette accents, player ground halo and enemy HP bars.
-2. Animated dodge roll/lean and a clearly raised shield during parry.
-3. Ground attack-sector telegraphs (red for heavy, parchment for standard) and stronger actor contrast.
+One-file HTML build for GitHub Pages: replace the repository `index.html`.
 
-Deployment: upload index.html AND renderer3d.js together into GitHub Pages repository. Use ?v=040 to refresh document URL. Look for BUILD 0.4 · VISUAL PASS bottom-left.
+## Changes from 0.8
+- Attack slot coordinator now counts active telegraphs once per simulation step instead of repeating a full enemy scan for every actor.
+- Enemy attack damage checks facing at the actual contact moment, so dodging outside the telegraphed sector is rewarded.
+- Perfect parry unlocks a 1.15-second counter opportunity: the next light attack is faster and stronger, with a distinct golden ground cue.
+- Attacking arms get anticipation and follow-through procedural poses.
+- Clear contextual PARRY, DODGE, COUNTER READY prompt when a nearby threat is actively preparing an attack.
+- Reduced far-off terrain tiling while retaining the full playable arena.
+- Fixed a death/restart timeout race and suppressed upgrade overlay after victory.
+- Minor mobile control contrast and safe-area styling.
 
-This remains a hybrid WebGL2 terrain + Canvas2D foreground project; the actors are not yet rigged GLB models. Model/animation quality is a work in progress.
-
-Controls: left joystick + Strike, Parry, Dodge, Axe on touch; WASD and mouse/Q/Space/E on desktop.
+## Limitations and validation
+- This is still procedurally generated low-poly mesh rendering with runtime poses, not rigged animation / imported GLB models.
+- 3D compatibility needs to be verified on real iPhone Safari.
+- Diagnostic parameters: `?debug=1`, `?actors=2d`, `?renderer=2d`, `?quality=low`.
+- This version is a substantial mechanics/stability batch, not the full character art overhaul.
