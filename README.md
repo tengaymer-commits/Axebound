@@ -1,12 +1,12 @@
-# AXEBOUND 0.3.2 — Safari visibility hotfix
+AXEBOUND 0.4 — Visual & Combat Readability Pass
 
-This release fixes the missing player/enemies on iPhone by drawing actors in the foreground Canvas2D layer independently of WebGL depth and projection. The WebGL renderer continues to draw the 3D landscape. All gameplay systems from 0.3.1 remain.
+Changes relative to v0.3.2a:
+1. More distinctive hero/enemy shading, silhouette accents, player ground halo and enemy HP bars.
+2. Animated dodge roll/lean and a clearly raised shield during parry.
+3. Ground attack-sector telegraphs (red for heavy, parchment for standard) and stronger actor contrast.
 
-## Deploy
-Upload **index.html and renderer3d.js** together to your GitHub Pages repository. If cached, reload with `?v=032` appended to the URL.
+Deployment: upload index.html AND renderer3d.js together into GitHub Pages repository. Use ?v=040 to refresh document URL. Look for BUILD 0.4 · VISUAL PASS bottom-left.
 
-## Fallback
-If WebGL terrain causes trouble, add `?renderer=2d` to the URL. This selects the previous Canvas2D background and also draws actors.
+This remains a hybrid WebGL2 terrain + Canvas2D foreground project; the actors are not yet rigged GLB models. Model/animation quality is a work in progress.
 
-## Important limitation
-Characters in this hotfix are 2.5D Canvas2D silhouettes over a WebGL3D world, not rigged 3D models. This is an intentional reliability workaround while the 3D actor pass is investigated.
+Controls: left joystick + Strike, Parry, Dodge, Axe on touch; WASD and mouse/Q/Space/E on desktop.
