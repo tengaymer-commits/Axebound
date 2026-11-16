@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101916">
-<title>AXEBOUND // The Ashen Meadow 0.3.1</title>
+<title>AXEBOUND // The Ashen Meadow 0.3.2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 :root{--ivory:#eee6d4;--muted:#a5b1a5;--gold:#d4b980;--blue:#8bdae7;--blood:#d76761;--panel:#101a1a}
@@ -25,7 +25,7 @@
 <script src="renderer3d.js"></script>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id), cvs=$('game'),ctx=cvs.getContext('2d',{alpha:true});let meadow=null;try{meadow=new MeadowRenderer($('world3d'))}catch(e){console.warn('3D renderer unavailable:',e)}let W=0,H=0,DPR=1,S=30,clock=0,last=0,frames=0,frameAccum=0,fps=60,shake=0,hitFlash=0,toastTTL=0,screenMode='splash',paused=false, entities=[],particles=[],slashes=[],floats=[],decor=[],blobs=[],enemyId=1,gameTime=0,spawnTick=0,wave=1,kills=0,highCombo=0,killsInWave=0,transition=0,essence=0,upgradeCount=0,upgrades={},bossSpawned=false,bossDefeated=false,hitstop=0,aim={x:1,z:0},camera={x:0,z:0},keys=new Set(),stick={x:0,z:0,pointer:null},mouse={x:0,y:0,active:false},audio=null,upgrading=false;
+const $=id=>document.getElementById(id), cvs=$('game'),ctx=cvs.getContext('2d',{alpha:true});let meadow=null;try{if(new URLSearchParams(location.search).get('renderer')!=='2d')meadow=new MeadowRenderer($('world3d'))}catch(e){console.warn('3D renderer unavailable:',e)}let W=0,H=0,DPR=1,S=30,clock=0,last=0,frames=0,frameAccum=0,fps=60,shake=0,hitFlash=0,toastTTL=0,screenMode='splash',paused=false, entities=[],particles=[],slashes=[],floats=[],decor=[],blobs=[],enemyId=1,gameTime=0,spawnTick=0,wave=1,kills=0,highCombo=0,killsInWave=0,transition=0,essence=0,upgradeCount=0,upgrades={},bossSpawned=false,bossDefeated=false,hitstop=0,aim={x:1,z:0},camera={x:0,z:0},keys=new Set(),stick={x:0,z:0,pointer:null},mouse={x:0,y:0,active:false},audio=null,upgrading=false;
 const TAU=Math.PI*2,rand=(a,b)=>a+Math.random()*(b-a),clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),len=(x,z)=>Math.hypot(x,z),norm=(x,z)=>{let d=len(x,z)||1;return{x:x/d,z:z/d}},dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),mix=(a,b,t)=>a+(b-a)*t;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=window.innerWidth;H=window.innerHeight;cvs.width=Math.floor(W*DPR);cvs.height=Math.floor(H*DPR);cvs.style.width=W+'px';cvs.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);S=Math.min(W/22,H/11.5)*1.05;}
 window.addEventListener('resize',resize);resize();
@@ -96,6 +96,11 @@ ctx.restore();if(a.wind>0&&a.dead===0){let col=(a.type==='riven'||a.type==='harr
 function drawAxe(a){if(a.state==='held')return;let p=project(a.x,a.z,a.state==='embedded'?.4:1.03);for(const tr of a.trail){let q=project(tr.x,tr.z,1.04);ell(q.x,q.y,clamp(tr.life*14,1,6),clamp(tr.life*11,1,5),`rgba(128,221,243,${tr.life*.5})`)}ctx.save();ctx.translate(p.x,p.y);ctx.rotate(a.spin);ctx.shadowColor='#80ddeb';ctx.shadowBlur=16;ctx.strokeStyle='#95714d';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-3,16);ctx.lineTo(8,-21);ctx.stroke();ctx.fillStyle='#c2d2cf';ctx.beginPath();ctx.moveTo(5,-23);ctx.lineTo(24,-28);ctx.lineTo(27,-9);ctx.lineTo(14,0);ctx.lineTo(8,-14);ctx.closePath();ctx.fill();ctx.fillStyle='#83d9e8';ctx.fillRect(14,-19,8,3);ctx.restore()}
 function render(){
 if(meadow){meadow.render({w:W,h:H,dpr:DPR,scale:S,camera,decor,player,entities,types,clock});ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);ctx.save();if(shake>0)ctx.translate(rand(-shake,shake)*.35,rand(-shake,shake)*.35);
+// SAFARI VISIBILITY FIX: render all combat actors explicitly in the transparent
+// Canvas2D foreground. This is independent of WebGL's depth/projection and is
+// reliably visible even on GPUs where the experimental mesh pass drops actors.
+const visibleActors=entities.map(e=>({depth:e.x+e.z,actor:e}));visibleActors.push({depth:player.x+player.z,actor:player,isPlayer:true});visibleActors.sort((a,b)=>a.depth-b.depth);for(const entry of visibleActors)drawHuman(entry.actor,!!entry.isPlayer);if(player.axe.state!=='held')drawAxe(player.axe);
+
 for(const sl of slashes){let p=project(sl.x,sl.z,1.1),life=sl.life/sl.max;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-sl.a*.45);ctx.strokeStyle=sl.heavy?`rgba(240,211,141,${life*.72})`:`rgba(157,229,230,${life*.76})`;ctx.lineWidth=sl.heavy?8:5;ctx.shadowColor='#9af1ed';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,S*(sl.heavy?2.1:1.8),-.9,.95);ctx.stroke();ctx.restore()}
 for(const p of particles){if(p.h<0)continue;let q=project(p.x,p.z,p.h);ctx.globalAlpha=clamp(p.life/.45,0,1);ell(q.x,q.y,p.size,p.size*.65,p.color)}ctx.globalAlpha=1;for(const f of floats){let q=project(f.x,f.z,f.h);ctx.fillStyle=f.color;ctx.textAlign='center';ctx.shadowColor='#020909';ctx.shadowBlur=5;ctx.font=`bold ${Math.max(10,Math.floor(S*.42))}px Rajdhani,Arial`;ctx.globalAlpha=clamp(f.life*1.7,0,1);ctx.fillText(f.s,q.x,q.y)}ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();return}
 // Fallback to original 2.5D renderer if WebGL2 is unavailable.
